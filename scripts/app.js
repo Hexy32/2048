@@ -10,6 +10,8 @@ setupInput()
 
 function setupInput() {
   window.addEventListener('keydown', handleInput, { once: true })
+
+  console.log(grid.cells[0].tile.value)
 }
 
 async function handleInput(e) {
