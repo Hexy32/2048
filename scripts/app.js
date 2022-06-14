@@ -1,137 +1,145 @@
-import Grid from './grid.js'
-import Tile from './tile.js'
+import Grid from "./grid.js";
+import Tile from "./tile.js";
 
-const gameBoard = document.getElementById('game-board')
+const gameBoard = document.getElementById("game-board");
 
-const grid = new Grid(gameBoard)
-grid.randomEmptyCell().tile = new Tile(gameBoard)
-grid.randomEmptyCell().tile = new Tile(gameBoard)
-setupInput()
+const grid = new Grid(gameBoard);
+grid.randomEmptyCell().tile = new Tile(gameBoard);
+grid.randomEmptyCell().tile = new Tile(gameBoard);
+setupInput();
 
 function setupInput() {
-  window.addEventListener('keydown', handleInput, { once: true })
-
-  console.log(grid.cells[0].tile.value)
+  window.addEventListener("keydown", handleInput, { once: true });
 }
 
 async function handleInput(e) {
   switch (e.key) {
-    case 'ArrowUp':
+    case "ArrowUp":
       if (!canMoveUp()) {
-        setupInput()
-        return
+        setupInput();
+        return;
       }
-      await moveUp()
-      break
-    case 'ArrowDown':
+      await moveUp();
+      break;
+    case "ArrowDown":
       if (!canMoveDown()) {
-        setupInput()
-        return
+        setupInput();
+        return;
       }
-      await moveDown()
-      break
-    case 'ArrowLeft':
+      await moveDown();
+      break;
+    case "ArrowLeft":
       if (!canMoveLeft()) {
-        setupInput()
-        return
+        setupInput();
+        return;
       }
-      await moveLeft()
-      break
-    case 'ArrowRight':
+      await moveLeft();
+      break;
+    case "ArrowRight":
       if (!canMoveRight()) {
-        setupInput()
-        return
+        setupInput();
+        return;
       }
-      await moveRight()
-      break
+      await moveRight();
+      break;
     default:
-      await setupInput()
-      return
+      await setupInput();
+      return;
   }
 
-  grid.cells.forEach((cell) => cell.mergeTiles())
+  grid.cells.forEach((cell) => cell.mergeTiles());
 
-  const newTile = new Tile(gameBoard)
-  grid.randomEmptyCell().tile = newTile
+  const newTile = new Tile(gameBoard);
+  grid.randomEmptyCell().tile = newTile;
 
   if (!canMoveUp() && !canMoveDown() && !canMoveLeft() && !canMoveRight()) {
     newTile.waitForTransition(true).then(() => {
-      alert('Game Over')
-    })
-    return
+      alert(`Game Over! You got a score of ${countTiles()}`);
+    });
+    return;
   }
 
-  setupInput()
+  setupInput();
+}
+
+function countTiles() {
+  let x = 0;
+  grid.cells.forEach((cell) => {
+    console.log(cell);
+    if (!cell.tile) return;
+    x += cell.tile.value;
+  });
+  return x;
 }
 
 function moveUp() {
-  return slideTile(grid.cellsByColumn)
+  return slideTile(grid.cellsByColumn);
 }
 
 function moveDown() {
-  return slideTile(grid.cellsByColumn.map((column) => [...column].reverse()))
+  return slideTile(grid.cellsByColumn.map((column) => [...column].reverse()));
 }
 
 function moveLeft() {
-  return slideTile(grid.cellsByRow)
+  return slideTile(grid.cellsByRow);
 }
 
 function moveRight() {
-  return slideTile(grid.cellsByRow.map((column) => [...column].reverse()))
+  return slideTile(grid.cellsByRow.map((column) => [...column].reverse()));
 }
 
 function slideTile(cells) {
   return Promise.all(
     cells.flatMap((group) => {
-      const promises = []
+      const promises = [];
       for (let i = 0; i < group.length; i++) {
-        const cell = group[i]
-        if (cell.tile == null) continue
-        let lastValidCell
+        const cell = group[i];
+        if (cell.tile == null) continue;
+        let lastValidCell;
         for (let j = i - 1; j >= 0; j--) {
-          const moveToCell = group[j]
-          if (!moveToCell.canAccept(cell.tile)) break
-          lastValidCell = moveToCell
+          const moveToCell = group[j];
+          if (!moveToCell.canAccept(cell.tile)) break;
+          lastValidCell = moveToCell;
         }
 
         if (lastValidCell != null) {
-          promises.push(cell.tile.waitForTransition())
+          promises.push(cell.tile.waitForTransition());
           if (lastValidCell.tile != null) {
-            lastValidCell.mergeTile = cell.tile
+            lastValidCell.mergeTile = cell.tile;
           } else {
-            lastValidCell.tile = cell.tile
+            lastValidCell.tile = cell.tile;
           }
-          cell.tile = null
+          cell.tile = null;
         }
       }
-      return promises
+      return promises;
     })
-  )
+  );
 }
 
 function canMoveUp() {
-  return canMove(grid.cellsByColumn)
+  return canMove(grid.cellsByColumn);
 }
 
 function canMoveDown() {
-  return canMove(grid.cellsByColumn.map((column) => [...column].reverse()))
+  return canMove(grid.cellsByColumn.map((column) => [...column].reverse()));
 }
 
 function canMoveLeft() {
-  return canMove(grid.cellsByRow)
+  return canMove(grid.cellsByRow);
 }
 
 function canMoveRight() {
-  return canMove(grid.cellsByRow.map((column) => [...column].reverse()))
+  return canMove(grid.cellsByRow.map((column) => [...column].reverse()));
 }
 
 function canMove(cells) {
   return cells.some((group) => {
     return group.some((cell, index) => {
-      if (index == 0) return false
-      if (cell.tile == null) return false
-      const moveToCell = group[index - 1]
-      return moveToCell.canAccept(cell.tile)
-    })
-  })
+      if (index == 0) return false;
+      if (cell.tile == null) return false;
+      const moveToCell = group[index - 1];
+      return moveToCell.canAccept(cell.tile);
+    });
+  });
 }
