@@ -3,11 +3,78 @@ import Tile from './tile.js'
 
 const gameBoard = document.getElementById('game-board')
 const pageTitle = document.getElementById('page-title')
+const gridRows = document.getElementById('grid-rows')
+const endCard = document.getElementById('end-card')
 
-const grid = new Grid(gameBoard)
+let grid = new Grid(gameBoard)
 grid.randomEmptyCell().tile = new Tile(gameBoard)
 grid.randomEmptyCell().tile = new Tile(gameBoard)
 setupInput()
+
+setInputWidth()
+
+function setInputWidth() {
+  let gameBoardWidth = window.getComputedStyle(gameBoard).width
+  let gameBoardPadding = window.getComputedStyle(gameBoard).paddingInline
+
+  gridRows.style.marginInline = gameBoardPadding
+  gridRows.style.width =
+    gameBoardWidth.slice(0, -2) - gameBoardPadding.slice(0, -2) * 2 + 'px'
+}
+
+window.addEventListener('resize', () => {
+  setInputWidth()
+})
+
+gridRows.addEventListener('keydown', (e) => {
+  if (
+    e.key === 'ArrowLeft' ||
+    e.key === 'ArrowRight' ||
+    e.key === 'ArrowUp' ||
+    e.key === 'ArrowDown'
+  ) {
+    e.preventDefault()
+  } else {
+    updateGridSize()
+  }
+})
+
+endCard.lastElementChild.addEventListener('click', () => {
+  restartGame()
+  console.log('restart')
+})
+
+gridRows.addEventListener('keyup', (e) => {
+  if (
+    e.key === 'ArrowLeft' ||
+    e.key === 'ArrowRight' ||
+    e.key === 'ArrowUp' ||
+    e.key === 'ArrowDown'
+  ) {
+    return
+  } else {
+    updateGridSize()
+  }
+})
+
+function updateGridSize() {
+  grid.cells.forEach((cell) => {
+    if (cell.tile != null) {
+      cell.tile.remove()
+    }
+  })
+
+  grid.remove()
+  grid = null
+  grid = new Grid(gameBoard, gridRows.value)
+
+  setupInput()
+
+  grid.randomEmptyCell().tile = new Tile(gameBoard)
+  grid.randomEmptyCell().tile = new Tile(gameBoard)
+
+  setTimeout(setInputWidth(), 700)
+}
 
 function setupInput() {
   window.addEventListener('keydown', handleInput, { once: true })
@@ -55,13 +122,40 @@ async function handleInput(e) {
 
   if (!canMoveUp() && !canMoveDown() && !canMoveLeft() && !canMoveRight()) {
     newTile.waitForTransition(true).then(() => {
-      alert(`Game Over! You got a score of ${countTiles()}`)
+      endCard.style.display = 'flex'
+      endCard.children[0].innerText =
+        getHighestTile() >= 2048 ? `You won!` : `You lost!`
+      endCard.children[1].innerText = `Your score: ${countTiles()} |  Your highest tile: ${getHighestTile()}`
     })
     return
   }
 
+  hideInput()
   updateScore()
   setupInput()
+}
+
+function restartGame() {
+  endCard.style.display = 'none'
+  updateGridSize()
+  showInput()
+}
+
+function hideInput() {
+  if (gridRows.style.opacity == '0') return
+  gridRows.style.width = '0px'
+  gridRows.style.opacity = '0'
+
+  const height = window.getComputedStyle(gridRows).height.slice(0, -2)
+  gameBoard.style.transition = '100ms cubic-bezier(0, 0.2, 1, 0.8)'
+  gameBoard.style.transform = `translateY(-${height - height / 2}px)`
+}
+
+function showInput() {
+  gridRows.style.width = 'auto'
+  gridRows.style.opacity = '1'
+  gameBoard.style.transform = `translateY(0px)`
+  setInputWidth()
 }
 
 function updateScore() {
@@ -73,6 +167,15 @@ function countTiles() {
   grid.cells.forEach((cell) => {
     if (!cell.tile) return
     x += cell.tile.value
+  })
+  return x
+}
+
+function getHighestTile() {
+  let x = 0
+  grid.cells.forEach((cell) => {
+    if (!cell.tile) return
+    if (x < cell.tile.value) x = cell.tile.value
   })
   return x
 }

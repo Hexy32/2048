@@ -9,9 +9,19 @@
     <title id="page-title">2048</title>
   </head>
   <body>
-    <div class="controlles">
-      <input type="number" name="Size" id="grid-rows" />
+    <div class="main">
+      <input
+        type="number"
+        name="Size"
+        id="grid-rows"
+        placeholder="Size in rows (2-10)"
+      />
+      <div id="game-board"></div>
+      <div class="end-card" id="end-card">
+        <h1>You lost!</h1>
+        <p>Your score: 130</p>
+        <button id="restart-button">Restart</button>
+      </div>
     </div>
-    <div id="game-board"></div>
   </body>
 </html>
