@@ -1,6 +1,6 @@
 const GRID_SIZE = 4
-const CELL_SIZE = 20
-const CELL_GAP = 2
+const CELL_SIZE = Math.round(65 / GRID_SIZE)
+const CELL_GAP = Math.round(CELL_SIZE / 6)
 
 export default class Grid {
   #cells
