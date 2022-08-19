@@ -12,6 +12,7 @@ grid.randomEmptyCell().tile = new Tile(gameBoard)
 setupInput()
 
 setInputWidth()
+console.log(grid)
 
 function setInputWidth() {
   let gameBoardWidth = window.getComputedStyle(gameBoard).width
